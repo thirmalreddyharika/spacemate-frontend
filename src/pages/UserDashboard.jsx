@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import API from "../services/api";
+import "./UserDashboard.css";
 
 export default function UserDashboard() {
   const { user } = useAuth();
@@ -200,22 +201,21 @@ export default function UserDashboard() {
   }, [parkingLots, lotSearch]);
 
   return (
-    <div className="container py-4">
+    <main className="container-fluid user-dashboard px-3 px-lg-4 py-4">
       {/* Page Header */}
-      <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+      <div className="dashboard-heading d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
         <div>
-          <h2 className="fw-bold mb-1">
-            🅿️ Parking Allotment Dashboard
-          </h2>
+          <p className="dashboard-eyebrow mb-1">SPACEMATE / DRIVER</p>
+          <h1 className="dashboard-title mb-1">Parking dashboard</h1>
           <p className="text-muted mb-0">
-            Welcome back, <strong>{user?.name || "Driver"}</strong>! Manage your reserved parking slots and book new allotments in real time.
+            Welcome back, <strong>{user?.name || "Driver"}</strong>. Manage reservations and find a space.
           </p>
         </div>
         <button
-          className="btn btn-primary"
+          className="btn btn-primary dashboard-primary-action"
           onClick={() => setActiveTab("reserve")}
         >
-          ➕ Find & Reserve Parking
+          <span aria-hidden="true">+</span> Find parking
         </button>
       </div>
 
@@ -232,33 +232,33 @@ export default function UserDashboard() {
       )}
 
       {/* Summary KPI Cards */}
-      <div className="row g-3 mb-4">
-        <div className="col-sm-6 col-lg-3">
-          <div className="card shadow-sm border-0 border-start border-primary border-4 h-100 p-3">
+      <div className="row g-3 mb-4 dashboard-metrics">
+        <div className="col-12 col-sm-6 col-xl-3">
+          <div className="card dashboard-stat dashboard-stat-blue h-100 p-3">
             <span className="text-muted small fw-semibold">TOTAL ALLOTMENTS</span>
             <h3 className="fw-bold my-1 text-primary">{totalBookings}</h3>
             <span className="text-muted small">Lifetime reservations</span>
           </div>
         </div>
 
-        <div className="col-sm-6 col-lg-3">
-          <div className="card shadow-sm border-0 border-start border-success border-4 h-100 p-3">
+        <div className="col-12 col-sm-6 col-xl-3">
+          <div className="card dashboard-stat dashboard-stat-green h-100 p-3">
             <span className="text-muted small fw-semibold">CONFIRMED / ACTIVE</span>
             <h3 className="fw-bold my-1 text-success">{confirmedBookings}</h3>
             <span className="text-muted small">Active allotted spots</span>
           </div>
         </div>
 
-        <div className="col-sm-6 col-lg-3">
-          <div className="card shadow-sm border-0 border-start border-warning border-4 h-100 p-3">
+        <div className="col-12 col-sm-6 col-xl-3">
+          <div className="card dashboard-stat dashboard-stat-amber h-100 p-3">
             <span className="text-muted small fw-semibold">PENDING ALLOTMENTS</span>
             <h3 className="fw-bold my-1 text-warning">{pendingBookings}</h3>
             <span className="text-muted small">Awaiting payment/confirmation</span>
           </div>
         </div>
 
-        <div className="col-sm-6 col-lg-3">
-          <div className="card shadow-sm border-0 border-start border-info border-4 h-100 p-3">
+        <div className="col-12 col-sm-6 col-xl-3">
+          <div className="card dashboard-stat dashboard-stat-coral h-100 p-3">
             <span className="text-muted small fw-semibold">TOTAL EXPENSE</span>
             <h3 className="fw-bold my-1 text-info">₹{totalSpent.toLocaleString("en-IN")}</h3>
             <span className="text-muted small">Excluding cancelled</span>
@@ -267,28 +267,34 @@ export default function UserDashboard() {
       </div>
 
       {/* Tab Navigation */}
-      <ul className="nav nav-pills mb-4 gap-2">
+      <ul className="nav nav-tabs dashboard-tabs mb-4" role="tablist" aria-label="Dashboard sections">
         <li className="nav-item">
           <button
             className={`nav-link ${activeTab === "allotments" ? "active" : ""}`}
+            type="button"
+            role="tab"
+            aria-selected={activeTab === "allotments"}
             onClick={() => setActiveTab("allotments")}
           >
-            📋 My Parking Allotments ({bookings.length})
+            My reservations <span className="dashboard-tab-count">{bookings.length}</span>
           </button>
         </li>
         <li className="nav-item">
           <button
             className={`nav-link ${activeTab === "reserve" ? "active" : ""}`}
+            type="button"
+            role="tab"
+            aria-selected={activeTab === "reserve"}
             onClick={() => setActiveTab("reserve")}
           >
-            🚗 Reserve Available Parking Lots ({parkingLots.length})
+            Find parking <span className="dashboard-tab-count">{parkingLots.length}</span>
           </button>
         </li>
       </ul>
 
       {/* Tab 1: My Allotments Table */}
       {activeTab === "allotments" && (
-        <div className="card shadow-sm border-0 p-3">
+        <div className="card dashboard-panel border-0 p-3 p-lg-4">
           <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
             <h4 className="fw-bold mb-0">My Reserved Parking Slots</h4>
             <div className="d-flex gap-2 flex-wrap">
@@ -413,7 +419,7 @@ export default function UserDashboard() {
 
       {/* Tab 2: Reserve Parking Lots Grid */}
       {activeTab === "reserve" && (
-        <div>
+        <section className="dashboard-reserve">
           <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
             <div>
               <h4 className="fw-bold mb-0">Approved Parking Facilities</h4>
@@ -482,7 +488,7 @@ export default function UserDashboard() {
               ))}
             </div>
           )}
-        </div>
+        </section>
       )}
 
       {/* Interactive Slot Allotment Modal */}
@@ -679,6 +685,6 @@ export default function UserDashboard() {
           </div>
         </div>
       )}
-    </div>
+    </main>
   );
 }
