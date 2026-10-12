@@ -23,19 +23,29 @@ const Slots = () => {
 
     try {
 
-      const lotResponse =
-        await API.get(`/parking-lots/${lotId}`);
+      let lotData = null;
+      try {
+        const lotResponse = await API.get(`/lots/${lotId}`);
+        lotData = lotResponse.data;
+      } catch {
+        const lotResponse = await API.get(`/parking-lots/${lotId}`);
+        lotData = lotResponse.data;
+      }
+      setLot(lotData);
 
-      setLot(lotResponse.data);
-
-      const slotResponse =
-        await API.get(`/parking-lots/${lotId}/slots`);
-
-      setSlots(slotResponse.data);
+      let slotData = [];
+      try {
+        const slotResponse = await API.get(`/slots/lot/${lotId}`);
+        slotData = slotResponse.data;
+      } catch {
+        const slotResponse = await API.get(`/parking-lots/${lotId}/slots`);
+        slotData = slotResponse.data;
+      }
+      setSlots(Array.isArray(slotData) ? slotData : []);
 
     } catch (error) {
 
-      console.error(error);
+      console.error("Error fetching slots:", error);
 
     } finally {
 

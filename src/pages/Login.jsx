@@ -27,13 +27,22 @@ const Login = () => {
 
       const data = response.data;
 
-      if (!data.token || !data.user) {
-        setError("Invalid response from server.");
+      if (!data || !data.token) {
+        setError("Invalid response from server. Missing authentication token.");
         return;
       }
 
+      // Support both nested user object and flat backend response
+      const userObj = data.user || {
+        id: data.userId,
+        userId: data.userId,
+        name: data.name,
+        email: data.email,
+        role: data.role,
+      };
+
       const role = String(
-        data.user.role || ""
+        userObj.role || data.role || ""
       ).toUpperCase();
 
       if (!["ADMIN", "OWNER", "USER"].includes(role)) {
@@ -42,7 +51,7 @@ const Login = () => {
       }
 
       login(data.token, {
-        ...data.user,
+        ...userObj,
         role,
       });
 
@@ -69,10 +78,14 @@ const Login = () => {
 
       navigate(safePath, { replace: true });
     } catch (err) {
-      setError(
+      const serverMessage =
         err.response?.data?.message ||
-          "Login failed. Check your email and password."
-      );
+        (err.response?.data && typeof err.response.data === "object"
+          ? Object.values(err.response.data)[0]
+          : null) ||
+        err.message ||
+        "Login failed. Check your email and password.";
+      setError(serverMessage);
     } finally {
       setLoading(false);
     }
