@@ -32,28 +32,42 @@ const Login = () => {
         return;
       }
 
-      const role = String(data.user.role || "").toUpperCase();
+      const role = String(
+        data.user.role || ""
+      ).toUpperCase();
 
       if (!["ADMIN", "OWNER", "USER"].includes(role)) {
         setError("Invalid account role.");
         return;
       }
 
-      login(data.token, { ...data.user, role });
+      login(data.token, {
+        ...data.user,
+        role,
+      });
 
+      // Always send each role to its permitted dashboard.
       if (role === "ADMIN") {
         navigate("/admin", { replace: true });
-      } else if (role === "OWNER") {
-        navigate("/owner", { replace: true });
-      } else {
-        const from = location.state?.from;
-        navigate(
-          from && from.startsWith("/") && !from.startsWith("//")
-            ? from
-            : "/",
-          { replace: true }
-        );
+        return;
       }
+
+      if (role === "OWNER") {
+        navigate("/owner", { replace: true });
+        return;
+      }
+
+      const from = location.state?.from;
+
+      // Only restore a local application path.
+      const safePath =
+        typeof from === "string" &&
+        from.startsWith("/") &&
+        !from.startsWith("//")
+          ? from
+          : "/user";
+
+      navigate(safePath, { replace: true });
     } catch (err) {
       setError(
         err.response?.data?.message ||
@@ -69,11 +83,7 @@ const Login = () => {
       <div className="login-box">
         <h2>Login to SpaceMate</h2>
 
-        {error && (
-          <div className="error">
-            {error}
-          </div>
-        )}
+        {error && <div className="error">{error}</div>}
 
         <form onSubmit={handleSubmit}>
           <input

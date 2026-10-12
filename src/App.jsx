@@ -32,11 +32,11 @@ function App() {
       <Navbar />
 
       <Routes>
-        {/* Public pages */}
+        {/* Public routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        {/* Authenticated pages */}
+        {/* All routes inside this group require authentication */}
         <Route element={<ProtectedRoute />}>
           <Route
             path="/"
@@ -77,15 +77,21 @@ function App() {
           <Route path="/slots" element={<Slots />} />
           <Route path="/parking-lots" element={<ParkingLots />} />
           <Route path="/booking" element={<Booking />} />
+
           <Route
             path="/booking-confirmation"
             element={<BookingConfirmation />}
           />
+
           <Route path="/my-bookings" element={<MyBookings />} />
           <Route path="/payment" element={<Payment />} />
         </Route>
 
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        {/* Unknown paths */}
+        <Route
+          path="*"
+          element={<Navigate to="/login" replace />}
+        />
       </Routes>
     </>
   );

@@ -9,8 +9,8 @@ const AuthContext = createContext(null);
 
 function readSavedUser() {
   try {
-    const saved = localStorage.getItem("user");
-    return saved ? JSON.parse(saved) : null;
+    const savedUser = localStorage.getItem("user");
+    return savedUser ? JSON.parse(savedUser) : null;
   } catch {
     localStorage.removeItem("user");
     return null;
@@ -47,9 +47,16 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+
+    // Remove these too if older code used them.
+    localStorage.removeItem("isLoggedIn");
+    sessionStorage.removeItem("isLoggedIn");
+
     setToken(null);
     setUser(null);
   };
+
+  const isAuthenticated = Boolean(token && user);
 
   return (
     <AuthContext.Provider
@@ -58,7 +65,7 @@ export const AuthProvider = ({ children }) => {
         user,
         login,
         logout,
-        isAuthenticated: Boolean(token && user),
+        isAuthenticated,
       }}
     >
       {children}
