@@ -1,140 +1,110 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
 
+import React, { useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import API from "../services/api";
 import { useAuth } from "../context/AuthContext";
 
 const Login = () => {
-
   const navigate = useNavigate();
-
+  const location = useLocation();
   const { login } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
-
     e.preventDefault();
-
     setError("");
+    setLoading(true);
 
     try {
-
       const response = await API.post("/auth/login", {
-        email,
-        password
+        email: email.trim(),
+        password,
       });
 
       const data = response.data;
 
-      /*
-       Expected backend response:
-
-       {
-         token: "...",
-         user: {
-           id: 1,
-           name: "...",
-           email: "...",
-           role: "USER"
-         }
-       }
-      */
-
-      login(data.token, data.user);
-
-      if (data.user.role === "ADMIN") {
-        navigate("/admin");
-      } else if (data.user.role === "OWNER") {
-        navigate("/owner");
-      } else {
-        navigate("/");
+      if (!data.token || !data.user) {
+        setError("The server did not return a token and user.");
+        return;
       }
 
-    } catch (err) {
+      const role = String(data.user.role || "").toUpperCase();
 
+      if (!["ADMIN", "OWNER", "USER"].includes(role)) {
+        setError("Your account has an invalid role.");
+        return;
+      }
+
+      login(data.token, { ...data.user, role });
+
+      if (role === "ADMIN") {
+        navigate("/admin", { replace: true });
+      } else if (role === "OWNER") {
+        navigate("/owner", { replace: true });
+      } else {
+        const from = location.state?.from;
+
+        navigate(
+          from && from.startsWith("/") && !from.startsWith("//")
+            ? from
+            : "/",
+          { replace: true }
+        );
+      }
+    } catch (err) {
       setError(
         err.response?.data?.message ||
-        "Invalid email or password"
+          "Login failed. Check your email and password."
       );
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="auth-container">
+    <section className="section">
+      <div className="login-box">
+        <h2>Login to SpaceMate</h2>
 
-      <div className="auth-card">
-
-        <h2 className="text-center mb-4">
-          Login
-        </h2>
-
-        {error && (
-          <div className="alert alert-danger">
-            {error}
-          </div>
-        )}
+        {error && <p className="error">{error}</p>}
 
         <form onSubmit={handleSubmit}>
+          <input
+            type="email"
+            placeholder="Enter Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
+            required
+          />
 
-          <div className="mb-3">
-
-            <label>Email</label>
-
-            <input
-              type="email"
-              className="form-control"
-              value={email}
-              onChange={(e) =>
-                setEmail(e.target.value)
-              }
-              required
-            />
-
-          </div>
-
-          <div className="mb-3">
-
-            <label>Password</label>
-
-            <input
-              type="password"
-              className="form-control"
-              value={password}
-              onChange={(e) =>
-                setPassword(e.target.value)
-              }
-              required
-            />
-
-          </div>
+          <input
+            type="password"
+            placeholder="Enter Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete="current-password"
+            required
+          />
 
           <button
             type="submit"
-            className="btn btn-primary w-100"
+            className="primary-btn"
+            disabled={loading}
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </button>
-
         </form>
 
-        <p className="text-center mt-3">
-
-          Don't have an account?
-          {" "}
-
-          <Link to="/register">
-            Register
-          </Link>
-
+        <p>
+          Don't have an account? <Link to="/register">Register</Link>
         </p>
-
       </div>
-
-    </div>
+    </section>
   );
 };
 

@@ -1,163 +1,93 @@
+
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import API from "../services/api";
 
 const Register = () => {
-
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    phone: "",
-    role: "USER"
-  });
-
-  const [message, setMessage] = useState("");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
-
     e.preventDefault();
-
-    setMessage("");
     setError("");
+    setLoading(true);
 
     try {
+      await API.post("/auth/register", {
+        name: name.trim(),
+        email: email.trim(),
+        password,
+      });
 
-      await API.post("/auth/register", formData);
-
-      setMessage("Registration successful!");
-
-      setTimeout(() => {
-        navigate("/login");
-      }, 1000);
-
+      navigate("/login", {
+        replace: true,
+        state: { registered: true },
+      });
     } catch (err) {
-
       setError(
         err.response?.data?.message ||
-        "Registration failed"
+          "Registration failed. Please try again."
       );
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="auth-container">
+    <section className="section">
+      <div className="login-box">
+        <h2>Register for SpaceMate</h2>
 
-      <div className="auth-card">
-
-        <h2 className="text-center mb-4">
-          Create Account
-        </h2>
-
-        {message && (
-          <div className="alert alert-success">
-            {message}
-          </div>
-        )}
-
-        {error && (
-          <div className="alert alert-danger">
-            {error}
-          </div>
-        )}
+        {error && <p className="error">{error}</p>}
 
         <form onSubmit={handleSubmit}>
+          <input
+            type="text"
+            placeholder="Enter Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            autoComplete="name"
+            required
+          />
 
-          <div className="mb-3">
-            <label>Name</label>
+          <input
+            type="email"
+            placeholder="Enter Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
+            required
+          />
 
-            <input
-              type="text"
-              name="name"
-              className="form-control"
-              value={formData.name}
-              onChange={handleChange}
-              required
-            />
-          </div>
-
-          <div className="mb-3">
-            <label>Email</label>
-
-            <input
-              type="email"
-              name="email"
-              className="form-control"
-              value={formData.email}
-              onChange={handleChange}
-              required
-            />
-          </div>
-
-          <div className="mb-3">
-            <label>Phone</label>
-
-            <input
-              type="tel"
-              name="phone"
-              className="form-control"
-              value={formData.phone}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="mb-3">
-            <label>Password</label>
-
-            <input
-              type="password"
-              name="password"
-              className="form-control"
-              value={formData.password}
-              onChange={handleChange}
-              required
-            />
-          </div>
-
-          <div className="mb-3">
-            <label>Register As</label>
-
-            <select
-              name="role"
-              className="form-select"
-              value={formData.role}
-              onChange={handleChange}
-            >
-              <option value="USER">User</option>
-              <option value="OWNER">Parking Lot Owner</option>
-            </select>
-          </div>
+          <input
+            type="password"
+            placeholder="Enter Password (minimum 8 characters)"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete="new-password"
+            minLength={8}
+            required
+          />
 
           <button
             type="submit"
-            className="btn btn-primary w-100"
+            className="primary-btn"
+            disabled={loading}
           >
-            Register
+            {loading ? "Registering..." : "Register"}
           </button>
-
         </form>
 
-        <p className="text-center mt-3">
-          Already have an account?
-          {" "}
-          <Link to="/login">
-            Login
-          </Link>
+        <p>
+          Already registered? <Link to="/login">Login</Link>
         </p>
-
       </div>
-
-    </div>
+    </section>
   );
 };
 

@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -6,111 +7,50 @@ const Navbar = () => {
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
 
+  const role = String(user?.role || "").toUpperCase();
+
   const handleLogout = () => {
     logout();
-    navigate("/login");
+    navigate("/login", { replace: true });
   };
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-dark spacemate-navbar">
-      <div className="container">
+    <nav className="navbar">
+      <Link to={isAuthenticated ? (
+        role === "ADMIN" ? "/admin" :
+        role === "OWNER" ? "/owner" : "/"
+      ) : "/login"} className="logo">
+        SpaceMate
+      </Link>
 
-        <Link className="navbar-brand fw-bold" to="/">
-          🅿️ SpaceMate
-        </Link>
+      <div className="nav-links">
+        {isAuthenticated ? (
+          <>
+            {role === "ADMIN" && (
+              <Link to="/admin">Admin Dashboard</Link>
+            )}
 
-        <button
-          className="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarContent"
-        >
-          <span className="navbar-toggler-icon"></span>
-        </button>
+            {role === "OWNER" && (
+              <Link to="/owner">Owner Dashboard</Link>
+            )}
 
-        <div
-          className="collapse navbar-collapse"
-          id="navbarContent"
-        >
-
-          <ul className="navbar-nav me-auto">
-
-            <li className="nav-item">
-              <Link className="nav-link" to="/">
-                Home
-              </Link>
-            </li>
-
-            {isAuthenticated && (
+            {role === "USER" && (
               <>
-                <li className="nav-item">
-                  <Link className="nav-link" to="/parking-lots">
-                    Parking Lots
-                  </Link>
-                </li>
-
-                <li className="nav-item">
-                  <Link className="nav-link" to="/my-bookings">
-                    My Bookings
-                  </Link>
-                </li>
+                <Link to="/">Home</Link>
+                <Link to="/user">Dashboard</Link>
+                <Link to="/slots">Available Slots</Link>
+                <Link to="/my-bookings">My Bookings</Link>
               </>
             )}
 
-            {user?.role === "OWNER" && (
-              <li className="nav-item">
-                <Link className="nav-link" to="/owner">
-                  Owner Dashboard
-                </Link>
-              </li>
-            )}
-
-            {user?.role === "ADMIN" && (
-              <li className="nav-item">
-                <Link className="nav-link" to="/admin">
-                  Admin Dashboard
-                </Link>
-              </li>
-            )}
-
-          </ul>
-
-          <div className="d-flex align-items-center">
-
-            {isAuthenticated ? (
-              <>
-                <span className="text-white me-3">
-                  Welcome, {user?.name}
-                </span>
-
-                <button
-                  className="btn btn-light"
-                  onClick={handleLogout}
-                >
-                  Logout
-                </button>
-              </>
-            ) : (
-              <>
-                <Link
-                  to="/login"
-                  className="btn btn-outline-light me-2"
-                >
-                  Login
-                </Link>
-
-                <Link
-                  to="/register"
-                  className="btn btn-light"
-                >
-                  Register
-                </Link>
-              </>
-            )}
-
-          </div>
-
-        </div>
+            <button onClick={handleLogout}>Logout</button>
+          </>
+        ) : (
+          <>
+            <Link to="/login">Login</Link>
+            <Link to="/register">Register</Link>
+          </>
+        )}
       </div>
     </nav>
   );
