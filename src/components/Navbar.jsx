@@ -1,59 +1,43 @@
-
-import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-const Navbar = () => {
-  const { user, isAuthenticated, logout } = useAuth();
+export default function Navbar() {
   const navigate = useNavigate();
-
-  const role = String(user?.role || "").toUpperCase();
+  const { user, isAuthenticated, logout } = useAuth();
+  const dashboardPath = {
+    ADMIN: "/admin",
+    OWNER: "/owner",
+    USER: "/user",
+  }[user?.role] || "/login";
 
   const handleLogout = () => {
     logout();
-    navigate("/login", { replace: true });
+    navigate("/login");
   };
 
   return (
-    <nav className="navbar">
-      <Link to={isAuthenticated ? (
-        role === "ADMIN" ? "/admin" :
-        role === "OWNER" ? "/owner" : "/"
-      ) : "/login"} className="logo">
+    <nav style={{
+      display: "flex", justifyContent: "space-between", alignItems: "center",
+      padding: "14px 24px", background: "#1f2937", color: "white"
+    }}>
+      <Link to="/" style={{ color: "#a5b4fc", fontSize: 24, fontWeight: "bold", textDecoration: "none" }}>
         SpaceMate
       </Link>
-
-      <div className="nav-links">
+      <div style={{ display: "flex", gap: 20, alignItems: "center" }}>
         {isAuthenticated ? (
           <>
-            {role === "ADMIN" && (
-              <Link to="/admin">Admin Dashboard</Link>
-            )}
-
-            {role === "OWNER" && (
-              <Link to="/owner">Owner Dashboard</Link>
-            )}
-
-            {role === "USER" && (
-              <>
-                <Link to="/">Home</Link>
-                <Link to="/user">Dashboard</Link>
-                <Link to="/slots">Available Slots</Link>
-                <Link to="/my-bookings">My Bookings</Link>
-              </>
-            )}
-
-            <button onClick={handleLogout}>Logout</button>
+            <Link to={dashboardPath} style={{ color: "#a5b4fc" }}>Dashboard</Link>
+            <button onClick={handleLogout} style={{
+              background: "none", border: "none", color: "white", cursor: "pointer", fontSize: 16
+            }}>Logout</button>
           </>
         ) : (
           <>
-            <Link to="/login">Login</Link>
-            <Link to="/register">Register</Link>
+            <Link to="/login" style={{ color: "white" }}>Login</Link>
+            <Link to="/register" style={{ color: "white" }}>Register</Link>
           </>
         )}
       </div>
     </nav>
   );
-};
-
-export default Navbar;
+}

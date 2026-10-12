@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import API from "../services/api";
 
@@ -13,13 +13,12 @@ export default function AdminDashboard() {
   const [feedback, setFeedback] = useState({ text: "", type: "" });
   const [activeTab, setActiveTab] = useState("lots"); // 'lots' | 'accounts' | 'bookings'
 
-  const showFeedback = (text, type = "success") => {
+  const showFeedback = useCallback((text, type = "success") => {
     setFeedback({ text, type });
     setTimeout(() => setFeedback({ text: "", type: "" }), 5000);
-  };
+  }, []);
 
-  const fetchAdminData = async () => {
-    setLoading(true);
+  const fetchAdminData = useCallback(async () => {
     try {
       const [lotsRes, usersRes, ownersRes, bookingsRes] = await Promise.all([
         API.get("/admin/lots").catch(() => ({ data: [] })),
@@ -38,11 +37,13 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showFeedback]);
 
   useEffect(() => {
+    // This effect intentionally starts the initial asynchronous data load.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchAdminData();
-  }, []);
+  }, [fetchAdminData]);
 
   // Approve lot
   const handleApproveLot = async (id) => {

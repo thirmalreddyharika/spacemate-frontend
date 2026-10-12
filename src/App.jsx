@@ -1,17 +1,7 @@
-
-import React from "react";
-import {
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
-
-import "./index.css";
-
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
-import RoleRoute from "./components/RoleRoute";
-
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -21,80 +11,60 @@ import BookingConfirmation from "./pages/BookingConfirmation";
 import MyBookings from "./pages/MyBookings";
 import ParkingLots from "./pages/ParkingLots";
 import Payment from "./pages/Payment";
-
 import AdminDashboard from "./pages/AdminDashboard";
 import OwnerDashboard from "./pages/OwnerDashboard";
 import UserDashboard from "./pages/UserDashboard";
+import "./index.css";
 
-function App() {
+export default function App() {
   return (
-    <>
-      <Navbar />
-
-      <Routes>
-        {/* Public routes */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-
-        {/* All routes inside this group require authentication */}
-        <Route element={<ProtectedRoute />}>
+    <AuthProvider>
+      <BrowserRouter>
+        <Navbar />
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
           <Route
             path="/"
             element={
-              <RoleRoute allowedRoles={["USER"]}>
+              <ProtectedRoute role="USER">
                 <Home />
-              </RoleRoute>
+              </ProtectedRoute>
             }
           />
-
           <Route
             path="/admin"
             element={
-              <RoleRoute allowedRoles={["ADMIN"]}>
+              <ProtectedRoute role="ADMIN">
                 <AdminDashboard />
-              </RoleRoute>
+              </ProtectedRoute>
             }
           />
-
           <Route
             path="/owner"
             element={
-              <RoleRoute allowedRoles={["OWNER"]}>
+              <ProtectedRoute role="OWNER">
                 <OwnerDashboard />
-              </RoleRoute>
+              </ProtectedRoute>
             }
           />
-
           <Route
             path="/user"
             element={
-              <RoleRoute allowedRoles={["USER"]}>
+              <ProtectedRoute role="USER">
                 <UserDashboard />
-              </RoleRoute>
+              </ProtectedRoute>
             }
           />
-
-          <Route path="/slots" element={<Slots />} />
-          <Route path="/parking-lots" element={<ParkingLots />} />
-          <Route path="/booking" element={<Booking />} />
-
-          <Route
-            path="/booking-confirmation"
-            element={<BookingConfirmation />}
-          />
-
-          <Route path="/my-bookings" element={<MyBookings />} />
-          <Route path="/payment" element={<Payment />} />
-        </Route>
-
-        {/* Unknown paths */}
-        <Route
-          path="*"
-          element={<Navigate to="/login" replace />}
-        />
-      </Routes>
-    </>
+          <Route path="/slots" element={<ProtectedRoute><Slots /></ProtectedRoute>} />
+          <Route path="/parking-lots" element={<ProtectedRoute><ParkingLots /></ProtectedRoute>} />
+          <Route path="/booking" element={<ProtectedRoute><Booking /></ProtectedRoute>} />
+          <Route path="/booking-confirmation" element={<ProtectedRoute><BookingConfirmation /></ProtectedRoute>} />
+          <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
+          <Route path="/payment" element={<ProtectedRoute><Payment /></ProtectedRoute>} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
-
-export default App;

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import API from "../services/api";
@@ -15,11 +15,7 @@ const Slots = () => {
 
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchSlots();
-  }, [lotId]);
-
-  const fetchSlots = async () => {
+  const fetchSlots = useCallback(async () => {
 
     try {
 
@@ -52,7 +48,13 @@ const Slots = () => {
       setLoading(false);
 
     }
-  };
+  }, [lotId]);
+
+  useEffect(() => {
+    // This effect intentionally starts the initial asynchronous data load.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchSlots();
+  }, [fetchSlots]);
 
   const selectSlot = (slot) => {
 

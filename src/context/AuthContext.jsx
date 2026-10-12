@@ -1,5 +1,5 @@
 
-import React, {
+import {
   createContext,
   useContext,
   useState,
@@ -73,6 +73,8 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
+// The shared hook is intentionally exported beside its provider.
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const context = useContext(AuthContext);
 

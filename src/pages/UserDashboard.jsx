@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import API from "../services/api";
 
@@ -29,8 +29,12 @@ export default function UserDashboard() {
   const [submittingAllotment, setSubmittingAllotment] = useState(false);
 
   // Initial Data Load
-  const fetchData = async () => {
-    setLoading(true);
+  const showFeedback = useCallback((text, type = "success") => {
+    setFeedback({ text, type });
+    setTimeout(() => setFeedback({ text: "", type: "" }), 5000);
+  }, []);
+
+  const fetchData = useCallback(async () => {
     try {
       const [bookingsRes, lotsRes] = await Promise.all([
         API.get("/bookings/my").catch(() => ({ data: [] })),
@@ -45,16 +49,13 @@ export default function UserDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showFeedback]);
 
   useEffect(() => {
+    // This effect intentionally starts the initial asynchronous data load.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchData();
-  }, []);
-
-  const showFeedback = (text, type = "success") => {
-    setFeedback({ text, type });
-    setTimeout(() => setFeedback({ text: "", type: "" }), 5000);
-  };
+  }, [fetchData]);
 
   // Open slot picker for a chosen lot
   const handleOpenSlotModal = async (lot) => {
@@ -547,16 +548,13 @@ export default function UserDashboard() {
                           slot.status === "AVAILABLE" && slot.available !== false;
                         const isSelected = selectedSlot?.id === slot.id;
 
-                        let btnClass = "btn-outline-secondary";
-                        if (isSelected) {
-                          btnClass = "btn-primary";
-                        } else if (isAvailable) {
-                          btnClass = "btn-outline-success";
-                        } else if (slot.status === "MAINTENANCE") {
-                          btnClass = "btn-secondary disabled";
-                        } else {
-                          btnClass = "btn-outline-danger disabled";
-                        }
+                        const btnClass = isSelected
+                          ? "btn-primary"
+                          : isAvailable
+                            ? "btn-outline-success"
+                            : slot.status === "MAINTENANCE"
+                              ? "btn-secondary disabled"
+                              : "btn-outline-danger disabled";
 
                         return (
                           <button

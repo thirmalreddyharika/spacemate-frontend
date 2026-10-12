@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import API from "../services/api";
 
@@ -8,7 +8,7 @@ const MyBookings = () => {
 
   const [loading, setLoading] = useState(true);
 
-  const fetchBookings = async () => {
+  const fetchBookings = useCallback(async () => {
 
     try {
 
@@ -17,20 +17,22 @@ const MyBookings = () => {
 
       setBookings(response.data);
 
-    } catch (error) {
+    } catch {
 
-      console.error(error);
+      console.error("Unable to load bookings.");
 
     } finally {
 
       setLoading(false);
 
     }
-  };
+  }, []);
 
   useEffect(() => {
+    // This effect intentionally starts the initial asynchronous data load.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchBookings();
-  }, []);
+  }, [fetchBookings]);
 
   const cancelBooking = async (id) => {
 
@@ -47,7 +49,7 @@ const MyBookings = () => {
 
       fetchBookings();
 
-    } catch (error) {
+    } catch {
 
       alert("Unable to cancel booking.");
 

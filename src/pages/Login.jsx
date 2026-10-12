@@ -1,136 +1,66 @@
-
-import React, { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import API from "../services/api";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import api from "../api";
 import { useAuth } from "../context/AuthContext";
 
-const Login = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { login } = useAuth();
-
+export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const { login } = useAuth();
 
-  const handleSubmit = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
-
     try {
-      const response = await API.post("/auth/login", {
-        email: email.trim(),
-        password,
-      });
-
-      const data = response.data;
-
-      if (!data || !data.token) {
-        setError("Invalid response from server. Missing authentication token.");
-        return;
-      }
-
-      // Support both nested user object and flat backend response
-      const userObj = data.user || {
-        id: data.userId,
-        userId: data.userId,
-        name: data.name,
-        email: data.email,
-        role: data.role,
+      const res = await api.post("/auth/login", { email: email.trim(), password });
+      const token = res.data.token || res.data.jwt || res.data.accessToken;
+      const userData = res.data.user || {
+        id: res.data.userId,
+        name: res.data.name,
+        email: res.data.email,
+        role: res.data.role,
       };
+      const role = String(userData.role || res.data.role || "")
+        .replace("ROLE_", "")
+        .toUpperCase();
 
-      const role = String(
-        userObj.role || data.role || ""
-      ).toUpperCase();
-
-      if (!["ADMIN", "OWNER", "USER"].includes(role)) {
-        setError("Invalid account role.");
+      if (!token || !["ADMIN", "OWNER", "USER"].includes(role)) {
+        setError("Invalid login response from server.");
         return;
       }
 
-      login(data.token, {
-        ...userObj,
-        role,
-      });
+      login(token, { ...userData, role });
 
-      // Always send each role to its permitted dashboard.
-      if (role === "ADMIN") {
-        navigate("/admin", { replace: true });
-        return;
-      }
-
-      if (role === "OWNER") {
-        navigate("/owner", { replace: true });
-        return;
-      }
-
-      const from = location.state?.from;
-
-      // Only restore a local application path.
-      const safePath =
-        typeof from === "string" &&
-        from.startsWith("/") &&
-        !from.startsWith("//")
-          ? from
-          : "/user";
-
-      navigate(safePath, { replace: true });
+      navigate(role === "ADMIN" ? "/admin" : role === "OWNER" ? "/owner" : "/user");
     } catch (err) {
-      const serverMessage =
-        err.response?.data?.message ||
-        (err.response?.data && typeof err.response.data === "object"
-          ? Object.values(err.response.data)[0]
-          : null) ||
-        err.message ||
-        "Login failed. Check your email and password.";
-      setError(serverMessage);
+      console.error(err);
+      setError(
+        !err.response ? "Server not reachable. Wait a minute and try again."
+        : err.response.status === 401 || err.response.status === 403 ? "Wrong email or password."
+        : `Login failed (${err.response.status})`
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <section className="section">
-      <div className="login-box">
-        <h2>Login to SpaceMate</h2>
-
-        {error && <div className="error">{error}</div>}
-
-        <form onSubmit={handleSubmit}>
-          <input
-            type="email"
-            placeholder="Enter Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-
-          <input
-            type="password"
-            placeholder="Enter Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-
-          <button
-            type="submit"
-            className="primary-btn"
-            disabled={loading}
-          >
-            {loading ? "Logging in..." : "Login"}
-          </button>
-        </form>
-
-        <p className="register-link">
-          Don't have an account?{" "}
-          <Link to="/register">Register here</Link>
-        </p>
-      </div>
-    </section>
+    <div style={{ maxWidth: 360, margin: "60px auto", padding: 24, border: "1px solid #ddd", borderRadius: 10 }}>
+      <h2>Login</h2>
+      <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <input type="email" placeholder="Email" value={email}
+          onChange={(e) => setEmail(e.target.value)} required style={{ padding: 10 }} />
+        <input type="password" placeholder="Password" value={password}
+          onChange={(e) => setPassword(e.target.value)} required style={{ padding: 10 }} />
+        <button type="submit" disabled={loading} style={{ padding: 10, cursor: "pointer" }}>
+          {loading ? "Logging in…" : "Login"}
+        </button>
+        {error && <p style={{ color: "red" }}>{error}</p>}
+      </form>
+    </div>
   );
-};
-
-export default Login;
+}
