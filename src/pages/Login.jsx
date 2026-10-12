@@ -28,14 +28,14 @@ const Login = () => {
       const data = response.data;
 
       if (!data.token || !data.user) {
-        setError("The server did not return a token and user.");
+        setError("Invalid response from server.");
         return;
       }
 
       const role = String(data.user.role || "").toUpperCase();
 
       if (!["ADMIN", "OWNER", "USER"].includes(role)) {
-        setError("Your account has an invalid role.");
+        setError("Invalid account role.");
         return;
       }
 
@@ -47,7 +47,6 @@ const Login = () => {
         navigate("/owner", { replace: true });
       } else {
         const from = location.state?.from;
-
         navigate(
           from && from.startsWith("/") && !from.startsWith("//")
             ? from
@@ -70,7 +69,11 @@ const Login = () => {
       <div className="login-box">
         <h2>Login to SpaceMate</h2>
 
-        {error && <p className="error">{error}</p>}
+        {error && (
+          <div className="error">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <input
@@ -78,7 +81,6 @@ const Login = () => {
             placeholder="Enter Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            autoComplete="email"
             required
           />
 
@@ -87,7 +89,6 @@ const Login = () => {
             placeholder="Enter Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            autoComplete="current-password"
             required
           />
 
@@ -100,8 +101,9 @@ const Login = () => {
           </button>
         </form>
 
-        <p>
-          Don't have an account? <Link to="/register">Register</Link>
+        <p className="register-link">
+          Don't have an account?{" "}
+          <Link to="/register">Register here</Link>
         </p>
       </div>
     </section>

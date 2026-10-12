@@ -206,3 +206,20 @@ button {
 .account-info p {
   margin: 12px 0;
 }
+
+.register-link {
+  display: block;
+  margin-top: 20px;
+  text-align: center;
+  color: #333;
+}
+
+.register-link a {
+  color: #2563eb;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.register-link a:hover {
+  text-decoration: underline;
+}
